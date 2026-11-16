@@ -1,0 +1,4 @@
+{
+  "installCommand": "pnpm install || true",
+  "buildCommand": "pnpm run vercel-build"
+}

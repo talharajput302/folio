@@ -1,0 +1,50 @@
+// Prisma schema — Ajaia Docs
+// Local: SQLite. For production (Vercel), switch provider to "postgresql"
+// and point DATABASE_URL at Neon. No raw SQL anywhere in the app.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime   @default(now())
+
+  documents Document[] @relation("OwnedDocuments")
+  shares    Share[]
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  title     String
+  content   String   @default("") // sanitized HTML from the editor
+  ownerId   String
+  owner     User     @relation("OwnedDocuments", fields: [ownerId], references: [id], onDelete: Cascade)
+  shares    Share[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId])
+}
+
+// A grant of access to a document for a recipient user.
+model Share {
+  id         String   @id @default(cuid())
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       String   @default("editor") // "editor" is the only role for now
+  createdAt  DateTime @default(now())
+
+  @@unique([documentId, userId]) // a user can be shared a doc only once
+  @@index([userId])
+}

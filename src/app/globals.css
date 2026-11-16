@@ -1,0 +1,121 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---- Folio design tokens: an editorial "paper" system ---- */
+:root {
+  --canvas: #f4f3ee;   /* warm bone background */
+  --paper: #ffffff;
+  --ink: #1c1b19;      /* near-black, warm */
+  --muted: #6f6e69;
+  --faint: #9b9a94;
+  --line: #e6e4de;
+  --accent: #4f46e5;
+  --accent-soft: #eef0fb;
+}
+
+@layer base {
+  body {
+    background: var(--canvas);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+      Helvetica, Arial, sans-serif;
+  }
+}
+
+/* Serif used for the wordmark, document titles and headings — editorial feel. */
+.font-serif {
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua",
+    Georgia, serif;
+}
+
+/* ---- Editor (ProseMirror) ---- */
+.ProseMirror {
+  min-height: 55vh;
+  outline: none;
+  color: var(--ink);
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  font-size: 1.125rem;
+  line-height: 1.75;
+  font-weight: 400;
+}
+.ProseMirror p {
+  font-weight: 400;
+}
+.ProseMirror strong,
+.ProseMirror b {
+  font-weight: 700;
+}
+.ProseMirror:focus {
+  outline: none;
+}
+.ProseMirror h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 1.2em 0 0.4em;
+}
+.ProseMirror h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 1.1em 0 0.4em;
+}
+.ProseMirror h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 1em 0 0.3em;
+}
+.ProseMirror p {
+  margin: 0.6em 0;
+}
+.ProseMirror ul {
+  list-style: disc;
+  padding-left: 1.5rem;
+  margin: 0.6em 0;
+}
+.ProseMirror ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+  margin: 0.6em 0;
+}
+.ProseMirror li {
+  margin: 0.2em 0;
+}
+.ProseMirror u {
+  text-decoration: underline;
+}
+.ProseMirror blockquote {
+  border-left: 3px solid var(--line);
+  padding-left: 1rem;
+  color: var(--muted);
+  font-style: italic;
+  margin: 0.8em 0;
+}
+.ProseMirror code {
+  background: #f1efe9;
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  font-size: 0.9em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--faint);
+  pointer-events: none;
+  height: 0;
+}
+
+/* subtle paper shadow + entrance animation */
+.paper-shadow {
+  box-shadow: 0 1px 2px rgba(28, 27, 25, 0.04), 0 8px 30px rgba(28, 27, 25, 0.06);
+}
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-rise {
+  animation: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
