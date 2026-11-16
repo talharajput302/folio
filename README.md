@@ -31,21 +31,17 @@ zero-dependency). Package manager: **pnpm**.
 
 ## Prerequisites
 
-- Node.js 18+ and **pnpm** (`npm i -g pnpm`)
-- A PostgreSQL database URL. The easiest free option is **Neon**
-  (neon.tech) — create a project and copy its connection string. No local
-  database software needed.
+- Node.js 18+ and **pnpm** (`npm i -g pnpm`) — no database software needed
+  (uses a local SQLite file).
 
 ## Setup & run (local)
 
 ```bash
 pnpm install
-cp .env.example .env           # then paste your Neon DATABASE_URL + a SESSION_SECRET
-pnpm prisma db push            # creates the tables on your database
-pnpm dev                       # http://localhost:3000
+cp .env.example .env            # local SQLite DB + a dev SESSION_SECRET
+pnpm prisma db push             # creates the SQLite database + tables
+pnpm dev                        # http://localhost:3000
 ```
-
-Generate a session secret with `openssl rand -hex 32`.
 
 There are **no seeded accounts** — create your own via **Sign up**. Passwords must
 be 8+ characters with an uppercase, a lowercase, and a number.

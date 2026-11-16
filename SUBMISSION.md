@@ -6,9 +6,11 @@ and persistence.
 
 ## Links
 
-- **Live app:** _<add after deploy — Phase 2>_
+- **Source (GitHub):** https://github.com/talharajput302/folio
 - **Walkthrough video:** _<add unlisted Loom/YouTube link>_
-- **Source:** this repository / Drive folder
+- **Live app:** not deployed — please run locally (steps below). The app is
+  deploy-ready (one Next.js app; swap the Prisma provider to Postgres for a
+  hosted DB). This was the deliberate cut under the timebox.
 
 ## Accounts (for reviewers)
 

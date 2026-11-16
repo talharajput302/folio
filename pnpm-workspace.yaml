@@ -1,9 +1,0 @@
-# Allow only these trusted packages to run install scripts (Prisma needs to set
-# up its client/engine; esbuild its binary). pnpm blocks all build scripts by
-# default as a supply-chain safeguard — this explicit allowlist lets the build
-# succeed on CI/Vercel without disabling the safeguard globally.
-onlyBuiltDependencies:
-  - "@prisma/client"
-  - "@prisma/engines"
-  - prisma
-  - esbuild
