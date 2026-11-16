@@ -1,94 +1,67 @@
-# Submission — Folio
+# Folio — Submission
 
-A lightweight collaborative document editor (Google Docs–inspired slice): create,
-format, upload-into, and share rich-text documents, with per-user access control
-and persistence.
+Folio is a lightweight, collaborative document editor — a focused, Google-Docs-inspired slice: sign up, write and format rich-text documents, import text files, and share documents with specific people, backed by real accounts, server-enforced access control, and persistence.
 
 ## Links
-
 - **Source (GitHub):** https://github.com/talharajput302/folio
-- **Walkthrough video:** _<add unlisted Loom/YouTube link>_
-- **Live app:** not deployed — please run locally (steps below). The app is
-  deploy-ready (one Next.js app; swap the Prisma provider to Postgres for a
-  hosted DB). This was the deliberate cut under the timebox.
+- **Walkthrough video:** see the video link field of this submission form.
+- **Live URL:** not hosted — the app runs locally in ~2 minutes (steps below). See *Deliberate scope cuts* for the reasoning.
 
-## Accounts (for reviewers)
+## Features
+- Email + password accounts (bcrypt-hashed) with a live password-strength checklist and show/hide.
+- Rich-text editing: bold, italic, underline, H1–H3, bulleted & numbered lists, with autosave.
+- Create / rename / edit / delete documents.
+- Import a `.txt` or `.md` file (≤1 MB) into a new editable document.
+- Sharing by email, with a clear **Documents you own** vs **Shared with you** split; shared users can edit, only the owner can delete or re-share.
+- Persistence (Prisma + SQLite); formatting preserved across refresh.
 
-There are **no pre-made accounts** — each reviewer signs up with their own email
-and a password (8+ chars, with an uppercase, a lowercase, and a number). Creating
-an account live is part of the walkthrough.
+## Run locally (~2 minutes)
+Requires Node 18+ and pnpm (`npm i -g pnpm`). No database software to install.
 
-**To test sharing** you need two accounts, so use a normal window and an
-incognito window:
-
-1. Window A: sign up (any email), create a document → **Share** → enter the
-   second account's email.
-2. Window B (incognito): sign up with that second email → the document shows under
-   **Shared with you** and is editable.
-3. A third account cannot open the document's URL — it returns **404**.
-
-## Run locally
-
-```bash
+```
 pnpm install
 cp .env.example .env
-pnpm prisma migrate dev     # creates the SQLite schema
-pnpm dev                    # http://localhost:3000  (sign up to start)
-pnpm test                   # run the test suite
+pnpm prisma db push
+pnpm dev            # http://localhost:3000
+pnpm test           # 24 passing tests
 ```
 
-Prereqs: Node 18+ and pnpm (`npm i -g pnpm`).
+## Accounts & testing the sharing flow
+There are no seeded accounts — sign up with any email (password: 8+ characters with an uppercase, a lowercase and a number). To test sharing, use a normal window and an incognito window:
+
+1. Window A: sign up, create a document → **Share** → enter the second account's email.
+2. Window B (incognito): sign up with that email → the document appears under **Shared with you** and is editable.
+3. A third, unrelated account that opens the document's URL gets a **404**.
 
 ## What works (end-to-end, verified)
+Every feature above works end-to-end, and security was verified rather than assumed:
 
-- Create / rename / edit / delete documents; **autosave** + explicit save.
-- Rich text: bold, italic, underline, H1–H3, bullet & numbered lists.
-- Persistence via SQLite/Prisma — survives refresh; formatting preserved.
-- **File upload**: `.txt` / `.md` (≤1 MB) → a new editable document. Other types
-  rejected with a clear message.
-- **Sharing**: owner grants access by email; **Owned** vs **Shared with me**
-  sections; shared users can edit; only the owner can delete/share.
-- **Accounts**: email + password sign up / sign in, bcrypt-hashed, live
-  password-strength checklist, show/hide password.
-- **Access control** enforced server-side on every request — verified:
-  outsider → 404, editor delete → 403, anonymous → 401.
-- **Security**: Prisma (no SQL injection), DOMPurify (stored-XSS stripped —
-  verified), Zod validation, safe error envelope, secrets in env.
-- **Tests**: 24 passing Vitest tests (access control, sanitization, upload +
-  list behaviour).
+- **Access control** is enforced on every request — outsider → 404, shared editor attempting delete → 403, anonymous → 401.
+- **No SQL injection** — all database access goes through Prisma (parameterized queries); no raw SQL.
+- **Stored-XSS stripped** — rich text is sanitized (DOMPurify); verified by pasting `<script>` and `<img onerror>` payloads and confirming they are removed.
+- **Passwords** are bcrypt-hashed; login returns a single generic error for wrong email or password (no account enumeration).
+- **24 automated tests** (Vitest) cover the access-control matrix, sanitization, upload validation, and editor list behaviour.
 
-## What is intentionally partial / deferred (and why)
+## Deliberate scope cuts (and why)
+- **Hosting.** I prioritised a fully working, well-tested local build over a rushed hosted one. The app is deploy-ready — it's a single Next.js app, so going live is a Prisma provider swap (SQLite → Postgres) plus two environment variables. Given the timebox, correctness, security and a clean codebase were a higher-value use of the remaining time than an under-tested live URL.
+- **Real-time multi-cursor collaboration, comments, version history, `.docx` import, and roles beyond owner/editor** are out of scope for this slice — sharing with per-user access was the core to prove.
+- **Mixing list types inside a single list** — each line is an independent list item; bulleted and numbered lists live as separate lists, exactly how Google Docs treats them.
 
-- **Live deployment** — app is fully working locally; deploy to Vercel + Neon is a
-  guided follow-up step (no paid dependency). _Update link above once deployed._
-- **Login hardening** — rate limiting / brute-force protection and CSRF tokens not
-  yet added (sameSite cookies in place). First production add.
-- **Email verification / password reset / OAuth** — out of scope for this slice.
-- **Real-time multi-cursor collaboration** — out of scope.
-- **`.docx` import** — only `.txt`/`.md` supported (stated in UI).
-- **Comments / version history / roles beyond owner+editor** — stretch, not built.
-- **Mixed list types within one list** — each line is an independent list item;
-  bulleted and numbered lists live as separate lists (as in Google Docs).
+## Notable engineering decisions & challenges
+- **Rich-text list semantics.** Per-line list conversion behaved unexpectedly because ProseMirror permits multi-paragraph list items. Instead of patching the UI by trial and error, I wrote headless tests that ran the editor's commands and inspected the resulting document, isolated the root cause, and fixed it at the schema level (single-paragraph list items). Measured, not guessed.
+- **Access-control model.** Unauthorized access returns 404 rather than 403, so the API never reveals whether a document exists (an IDOR defense); the full owner/editor/outsider/anonymous matrix is tested.
+- **Supply-chain hygiene.** pnpm blocks dependency install-scripts by default; I kept that safeguard, used only well-known, version-pinned packages, and generated the Prisma client explicitly rather than disabling the protection.
+- **Auth iteration.** I began with a lightweight login to move quickly, then deliberately upgraded to real email + password (bcrypt) with signup, because the lightweight version read as a prototype rather than a product.
+- **SSR correctness.** Resolved a hydration mismatch caused by locale-dependent timestamps by rendering dates on the client.
 
-## What I'd do with another 2–4 hours
+## With another 2–4 hours
+1. Host it live (Vercel + a managed Postgres such as Neon) and smoke-test the deployed build.
+2. Login hardening — rate limiting / brute-force protection and CSRF tokens; plus email verification and password reset.
+3. A viewer (read-only) role and a document version-history trail.
+4. Richer import — parse markdown headings/bold on import instead of importing as plain text.
 
-1. Deploy live (Vercel + Neon) and smoke-test the hosted build.
-2. Rate limiting + CSRF on mutations; email verification / password reset.
-3. Viewer (read-only) role and a document version-history trail.
-4. Light markdown parsing on import (headings/bold) instead of text-only.
-
-## AI workflow (summary)
-
-Built with Claude (Claude Code). AI accelerated scaffolding, Prisma schema, API
-handlers, TipTap wiring, tests, and docs. I kept judgment: tightened access
-control to return 404 (not 403) to avoid leaking existence, locked the DOMPurify
-allow-list to our formatting set, pinned trusted package versions, and verified
-everything by driving the real multi-user flow + curl security probes. Full note:
-`docs/AI_WORKFLOW.md`.
+## AI workflow
+Built with Claude (Claude Code) as a pair-engineer for scaffolding, the Prisma schema, API handlers, the editor, tests, and the written docs. I kept judgment where it mattered: I rejected the first passwordless-auth approach in favour of real auth, tightened unauthorized responses to 404, locked the HTML sanitizer to an explicit allow-list, and — when a UI bug resisted quick fixes — stopped guessing and wrote headless tests to find the true cause. Correctness was verified with the test suite plus manual multi-user testing and curl-based security probes.
 
 ## Architecture (summary)
-
-Single Next.js (App Router) app — UI + API in one deployable. TipTap editor stores
-sanitized HTML. Prisma + SQLite (swappable to Postgres). One access-control
-chokepoint (`src/lib/access.ts`) guards every document read/write. Full note:
-`docs/ARCHITECTURE.md`; tradeoffs in `docs/DECISIONS.md`.
+A single Next.js (App Router) application — UI and API in one deployable. TipTap editor; content stored as sanitized HTML. Prisma ORM over SQLite (swappable to Postgres). A single access-control chokepoint guards every document read and write. Zod validates every API input, and errors return a safe envelope with no internal details exposed.
